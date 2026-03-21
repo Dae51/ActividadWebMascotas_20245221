@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Panel | PawsHome{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <div>
+        <p class="eyebrow">Panel del dueño</p>
+        <h1>{{ session.get('username', 'Cuidador') }}, aquí están tus mascotas.</h1>
+        <p class="muted">Activa o desactiva la adopción, revisa cada perfil rápidamente y mantén tu lista organizada mientras llegan solicitudes.</p>
+    </div>
+    <a class="button-link" href="{{ url_for('add_pet') }}">Agregar una mascota</a>
+</section>
+
+<section class="card-grid">
+    {% for pet in pets %}
+        <article class="panel pet-card">
+            <div class="pet-media" {% if pet.photo_url %}style="background-image: linear-gradient(180deg, rgba(14, 17, 30, 0.1), rgba(14, 17, 30, 0.7)), url('{{ pet.photo_url }}');"{% endif %}>
+                <span class="status-badge status-{{ pet.status }}">{{ pet.status|status_es }}</span>
+                {% if pet.is_for_adoption %}
+                    <span class="catalog-badge">En catálogo</span>
+                {% endif %}
+            </div>
+            <div class="pet-body">
+                <div class="pet-title-row">
+                    <div>
+                        <h2>{{ pet.name }}</h2>
+                        <p>{{ pet.species|species_es }}{% if pet.breed %} · {{ pet.breed }}{% endif %}</p>
+                    </div>
+                    {% if pet.age_years %}
+                        <span class="pill">{{ pet.age_years }} años</span>
+                    {% endif %}
+                </div>
+                <p class="muted pet-description">{{ pet.description or 'Todavía no hay notas adicionales. Agrega un breve resumen de su personalidad cuando quieras.' }}</p>
+                <form method="post" action="{{ url_for('toggle_adoption', pet_id=pet.id) }}">
+                    <input type="hidden" name="current_state" value="{{ 'true' if pet.is_for_adoption else 'false' }}">
+                    <button type="submit" class="secondary-button">
+                        {{ 'Quitar de adopción' if pet.is_for_adoption else 'Publicar para adopción' }}
+                    </button>
+                </form>
+            </div>
+        </article>
+    {% else %}
+        <article class="panel empty-state">
+            <h2>Aún no tienes mascotas</h2>
+            <p class="muted">Empieza agregando el primer perfil. Cuando ya exista, puedes decidir si debe aparecer en el catálogo de adopción.</p>
+            <a class="button-link" href="{{ url_for('add_pet') }}">Crear primer perfil</a>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}

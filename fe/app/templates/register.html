@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Registro | PawsHome{% endblock %}
+{% block page_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="hero-card auth-layout">
+    <div class="hero-copy">
+        <p class="eyebrow">Crea tu espacio</p>
+        <h1>Construye un perfil confiable antes de publicar o adoptar una mascota.</h1>
+        <p class="muted">La interfaz se mantiene ligera a propósito: solo lo esencial para crear una cuenta segura y comenzar a cuidar animales dentro del sistema.</p>
+    </div>
+    <form class="panel form-card" method="post">
+        <h2>Crear cuenta</h2>
+        <label>
+            Nombre completo
+            <input type="text" name="full_name" placeholder="Alex Rivera">
+        </label>
+        <label>
+            Usuario
+            <input type="text" name="username" placeholder="alexr" required>
+        </label>
+        <label>
+            Correo electrónico
+            <input type="email" name="email" placeholder="alex@example.com" required>
+        </label>
+        <label>
+            Contraseña
+            <input type="password" name="password" placeholder="Elige una contraseña segura" required>
+        </label>
+        <button type="submit">Crear cuenta</button>
+        <p class="form-foot">¿Ya estás registrado? <a href="{{ url_for('login') }}">Inicia sesión</a></p>
+    </form>
+</section>
+{% endblock %}

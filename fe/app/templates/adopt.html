@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Adoptar a {{ pet.name }} | PawsHome{% endblock %}
+
+{% block content %}
+<section class="adopt-layout">
+    <article class="panel spotlight-card">
+        <div class="pet-media tall-media" {% if pet.photo_url %}style="background-image: linear-gradient(180deg, rgba(14, 17, 30, 0.1), rgba(14, 17, 30, 0.74)), url('{{ pet.photo_url }}');"{% endif %}></div>
+        <div class="pet-body">
+            <p class="eyebrow">Perfil de adopción</p>
+            <h1>{{ pet.name }}</h1>
+            <p>{{ pet.species|species_es }}{% if pet.breed %} · {{ pet.breed }}{% endif %}</p>
+            <p class="muted pet-description">{{ pet.description or 'Esta mascota está lista para un nuevo hogar con cariño y atención.' }}</p>
+            <div class="pet-meta">
+                {% if pet.age_years %}<span class="pill">{{ pet.age_years }} años</span>{% endif %}
+                <span class="pill soft">estado {{ pet.status|status_es }}</span>
+            </div>
+        </div>
+    </article>
+
+    <form class="panel form-card adopt-form" method="post">
+        <p class="eyebrow">Solicitar adopción</p>
+        <h2>Cuéntale al dueño actual por qué eres una buena opción.</h2>
+        <label>
+            Mensaje opcional
+            <textarea name="message" rows="8" placeholder="Cuéntale sobre tu hogar, tu rutina, tu experiencia con animales o cualquier detalle que ayude a generar confianza."></textarea>
+        </label>
+        <div class="form-actions">
+            <a class="ghost-link" href="{{ url_for('catalog') }}">Volver al catálogo</a>
+            <button type="submit">Enviar solicitud de adopción</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

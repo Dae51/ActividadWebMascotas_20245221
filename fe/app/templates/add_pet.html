@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Agregar mascota | PawsHome{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <div>
+        <p class="eyebrow">Nuevo compañero</p>
+        <h1>Crea un perfil de mascota claro, cercano y listo para usarse.</h1>
+        <p class="muted">Puedes mantenerlo privado por ahora o publicarlo directamente en el catálogo de adopción.</p>
+    </div>
+</section>
+
+<form class="panel large-form" method="post" enctype="multipart/form-data">
+    <div class="form-grid">
+        <label>
+            Nombre
+            <input type="text" name="name" required>
+        </label>
+        <label>
+            Especie
+            <input type="text" name="species" placeholder="Perro, gato, conejo..." required>
+        </label>
+        <label>
+            Raza
+            <input type="text" name="breed">
+        </label>
+        <label>
+            Edad en años
+            <input type="number" name="age_years" min="0" step="0.1">
+        </label>
+        <label class="full-span">
+            Imagen
+            <input type="file" name="photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+        </label>
+        <label class="full-span">
+            Descripción
+            <textarea name="description" rows="5" placeholder="Personalidad, notas de salud, hábitos, juguetes favoritos..."></textarea>
+        </label>
+    </div>
+    <label class="checkbox-row">
+        <input type="checkbox" name="is_for_adoption">
+        <span>Publicar esta mascota inmediatamente en el catálogo de adopción</span>
+    </label>
+    <div class="form-actions">
+        <a class="ghost-link" href="{{ url_for('dashboard') }}">Volver al panel</a>
+        <button type="submit">Guardar perfil de mascota</button>
+    </div>
+</form>
+{% endblock %}

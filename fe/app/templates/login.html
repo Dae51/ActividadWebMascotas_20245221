@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión | PawsHome{% endblock %}
+{% block page_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="hero-card auth-layout">
+    <div class="hero-copy">
+        <p class="eyebrow">Portal PawsHome</p>
+        <h1>Vuelve a conectar con las mascotas que cuidas y los hogares que merecen.</h1>
+        <p class="muted">Inicia sesión para administrar tus compañeros, publicarlos en adopción y seguir cada solicitud desde un panel claro y tranquilo.</p>
+        <div class="feature-list">
+            <span>Gestión simple de mascotas</span>
+            <span>Catálogo listo para adopción</span>
+            <span>Flujo en tiempo real</span>
+        </div>
+    </div>
+    <form class="panel form-card" method="post">
+        <h2>Bienvenido de nuevo</h2>
+        <p class="muted">Usa la cuenta que creaste en el flujo conectado al API.</p>
+        <label>
+            Usuario
+            <input type="text" name="username" placeholder="tu usuario" required>
+        </label>
+        <label>
+            Contraseña
+            <input type="password" name="password" placeholder="tu contraseña" required>
+        </label>
+        <button type="submit">Entrar al panel</button>
+        <p class="form-foot">¿Aún no tienes cuenta? <a href="{{ url_for('register') }}">Crea una</a></p>
+    </form>
+</section>
+{% endblock %}

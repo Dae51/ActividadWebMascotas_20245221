@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: pawshome
+      POSTGRES_USER: pawsuser
+      POSTGRES_PASSWORD: pawspass
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:Z
+      - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pawsuser -d pawshome"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  be:
+    build: ./be
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://pawsuser:pawspass@db:5432/pawshome
+      SECRET_KEY: supersecretkey_change_in_production
+      TOKEN_EXPIRE_MINUTES: 60
+    depends_on:
+      db:
+        condition: service_healthy
+
+  fe:
+    build: ./fe
+    ports:
+      - "5000:5000"
+    environment:
+      API_BASE_URL: http://be:8000
+    depends_on:
+      - be
+
+volumes:
+  db_data:

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Catálogo | PawsHome{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <div>
+        <p class="eyebrow">Catálogo de adopción</p>
+        <h1>Explora las mascotas que actualmente están listas para conocer un nuevo hogar.</h1>
+        <p class="muted">Cada tarjeta llega directamente desde el catálogo del backend, así que lo que ves aquí coincide con la disponibilidad real.</p>
+    </div>
+</section>
+
+<section class="card-grid">
+    {% for pet in pets %}
+        <article class="panel pet-card catalog-card">
+            <div class="pet-media" {% if pet.photo_url %}style="background-image: linear-gradient(180deg, rgba(14, 17, 30, 0.08), rgba(14, 17, 30, 0.72)), url('{{ pet.photo_url }}');"{% endif %}>
+                <span class="status-badge status-{{ pet.status }}">{{ pet.status|status_es }}</span>
+            </div>
+            <div class="pet-body">
+                <h2>{{ pet.name }}</h2>
+                <p>{{ pet.species|species_es }}{% if pet.breed %} · {{ pet.breed }}{% endif %}</p>
+                <p class="muted pet-description">{{ pet.description or 'Esta mascota está esperando una familia con cariño y compromiso.' }}</p>
+                <div class="pet-meta">
+                    {% if pet.age_years %}<span class="pill">{{ pet.age_years }} años</span>{% endif %}
+                    <span class="pill soft">dueño #{{ pet.owner_id }}</span>
+                    <span class="pill soft">en adopción {{ pet.is_for_adoption|yesno_es }}</span>
+                </div>
+                <a class="button-link" href="{{ url_for('adopt', pet_id=pet.id) }}">Iniciar solicitud de adopción</a>
+            </div>
+        </article>
+    {% else %}
+        <article class="panel empty-state">
+            <h2>No hay mascotas disponibles en este momento</h2>
+            <p class="muted">Vuelve más tarde o agrega una de tus mascotas al catálogo desde el panel.</p>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}
