@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -16,18 +16,12 @@ def request_adoption(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    adoption = adoption_service.request_adoption(
+    return adoption_service.request_adoption(
         db,
         adoption_request.pet_id,
         current_user.id,
         adoption_request.message,
     )
-    if adoption is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Adoption request could not be created",
-        )
-    return adoption
 
 
 @router.post("/{adoption_id}/complete", response_model=AdoptionOut)
@@ -36,10 +30,4 @@ def complete_adoption(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    adoption = adoption_service.complete_adoption(db, adoption_id, current_user.id)
-    if adoption is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Adoption not found or not allowed",
-        )
-    return adoption
+    return adoption_service.complete_adoption(db, adoption_id, current_user.id)
