@@ -12,19 +12,20 @@
         <div class="feature-list">
             <span>Gestión simple de mascotas</span>
             <span>Catálogo listo para adopción</span>
-            <span>Flujo en tiempo real</span>
+            <span>Solicitudes con seguimiento</span>
         </div>
     </div>
     <form class="panel form-card" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <h2>Bienvenido de nuevo</h2>
         <p class="muted">Usa la cuenta que creaste en el flujo conectado al API.</p>
         <label>
             Usuario
-            <input type="text" name="username" placeholder="tu usuario" required>
+            <input type="text" name="username" placeholder="tu usuario" autocomplete="username" required>
         </label>
         <label>
             Contraseña
-            <input type="password" name="password" placeholder="tu contraseña" required>
+            <input type="password" name="password" placeholder="tu contraseña" autocomplete="current-password" required>
         </label>
         <button type="submit">Entrar al panel</button>
         <p class="form-foot">¿Aún no tienes cuenta? <a href="{{ url_for('register') }}">Crea una</a></p>

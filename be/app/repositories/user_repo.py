@@ -1,5 +1,4 @@
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..models.user import User
@@ -10,17 +9,14 @@ def get_by_username(db: Session, username: str) -> User | None:
     return db.scalar(stmt)
 
 
-
 def get_by_email(db: Session, email: str) -> User | None:
     stmt = select(User).where(User.email == email)
     return db.scalar(stmt)
 
 
-
 def get_by_id(db: Session, user_id: int) -> User | None:
     stmt = select(User).where(User.id == user_id)
     return db.scalar(stmt)
-
 
 
 def create(
@@ -37,10 +33,6 @@ def create(
         full_name=full_name,
     )
     db.add(user)
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise
+    db.flush()
     db.refresh(user)
     return user

@@ -1,41 +1,72 @@
 services:
   db:
     image: postgres:18
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: pawshome
-      POSTGRES_USER: pawsuser
-      POSTGRES_PASSWORD: pawspass
+      POSTGRES_DB: ${POSTGRES_DB:-pawshome}
+      POSTGRES_USER: ${POSTGRES_USER:-pawsuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:Z
       - db_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pawsuser -d pawshome"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pawsuser} -d ${POSTGRES_DB:-pawshome}"]
       interval: 10s
       timeout: 5s
       retries: 10
 
   be:
     build: ./be
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-pawsuser}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pawshome}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      TOKEN_EXPIRE_MINUTES: ${TOKEN_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5000}
+      DEBUG: "false"
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql+psycopg2://pawsuser:pawspass@db:5432/pawshome
-      SECRET_KEY: supersecretkey_change_in_production
-      TOKEN_EXPIRE_MINUTES: 60
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   fe:
     build: ./fe
-    ports:
-      - "5000:5000"
     environment:
       API_BASE_URL: http://be:8000
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      WS_PUBLIC_URL: ${WS_PUBLIC_URL:-ws://localhost:8000/ws/notifications}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-5}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DEBUG: "false"
+    ports:
+      - "5000:5000"
+    volumes:
+      - fe_uploads:/app/app/static/uploads
     depends_on:
-      - be
+      be:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
 volumes:
   db_data:
+  fe_uploads:

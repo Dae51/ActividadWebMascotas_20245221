@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Avisos | PawsHome{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <div>
+        <p class="eyebrow">Centro de avisos</p>
+        <h1>Todo lo que ocurre con tus mascotas y tus solicitudes.</h1>
+        <p class="muted">Los avisos se generan cuando recibes una solicitud, cuando la aprueban o rechazan y cuando una adopción se completa.</p>
+    </div>
+    <form method="post" action="{{ url_for('notifications_read_all') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="secondary-button">Marcar todo como leído</button>
+    </form>
+</section>
+
+<div class="request-list">
+    {% for item in notifications %}
+        <article class="panel request-card {% if not item.is_read %}request-unread{% endif %}">
+            <div class="request-main">
+                <div>
+                    <h3>{{ item.title }}</h3>
+                    <p class="muted">{{ item.created_at|datetime_es }} · {{ item.type }}</p>
+                </div>
+                {% if item.is_read %}
+                    <span class="pill soft">Leído</span>
+                {% else %}
+                    <form method="post" action="{{ url_for('notification_read', notification_id=item.id) }}">
+                        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                        <button type="submit" class="secondary-button">Marcar leído</button>
+                    </form>
+                {% endif %}
+            </div>
+            <p class="request-message">{{ item.message }}</p>
+        </article>
+    {% else %}
+        <article class="panel empty-state">
+            <h2>No tienes avisos todavía</h2>
+            <p class="muted">Cuando alguien solicite adoptar una de tus mascotas verás el aviso aquí y en tiempo real.</p>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}

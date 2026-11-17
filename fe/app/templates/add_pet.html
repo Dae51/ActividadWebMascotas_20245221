@@ -12,25 +12,31 @@
 </section>
 
 <form class="panel large-form" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
     <div class="form-grid">
         <label>
             Nombre
-            <input type="text" name="name" required>
+            <input type="text" name="name" maxlength="100" required>
         </label>
         <label>
             Especie
-            <input type="text" name="species" placeholder="Perro, gato, conejo..." required>
+            <select name="species" required>
+                <option value="dog">Perro</option>
+                <option value="cat">Gato</option>
+                <option value="rabbit">Conejo</option>
+                <option value="bird">Ave</option>
+            </select>
         </label>
         <label>
             Raza
-            <input type="text" name="breed">
+            <input type="text" name="breed" maxlength="100">
         </label>
         <label>
             Edad en años
-            <input type="number" name="age_years" min="0" step="0.1">
+            <input type="number" name="age_years" min="0" max="100" step="0.1">
         </label>
         <label class="full-span">
-            Imagen
+            Imagen (JPEG o PNG, máximo 5 MB)
             <input type="file" name="photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
         </label>
         <label class="full-span">

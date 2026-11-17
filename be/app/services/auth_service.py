@@ -18,16 +18,15 @@ pwd_context = CryptContext(
     deprecated="auto",
 )
 
+WS_SCOPE = "ws"
 
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
-
 
 
 def create_access_token(user_id: int) -> str:
@@ -38,14 +37,35 @@ def create_access_token(user_id: int) -> str:
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
-
 def decode_token(token: str) -> TokenData:
     payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+    if payload.get("scope") == WS_SCOPE:
+        raise JWTError("WebSocket tickets cannot be used as access tokens")
+
     user_id = payload.get("user_id")
     if user_id is None:
         raise JWTError("Token missing user_id")
     return TokenData(user_id=int(user_id))
 
+
+def create_ws_ticket(user_id: int) -> tuple[str, int]:
+    """Short lived, single purpose credential for the WebSocket handshake."""
+    expires_in = settings.ws_ticket_expire_seconds
+    expire = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+    payload = {"user_id": user_id, "scope": WS_SCOPE, "exp": expire}
+    ticket = jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+    return ticket, expires_in
+
+
+def decode_ws_ticket(ticket: str) -> TokenData:
+    payload = jwt.decode(ticket, settings.secret_key, algorithms=[settings.algorithm])
+    if payload.get("scope") != WS_SCOPE:
+        raise JWTError("Invalid ticket scope")
+
+    user_id = payload.get("user_id")
+    if user_id is None:
+        raise JWTError("Ticket missing user_id")
+    return TokenData(user_id=int(user_id))
 
 
 def register(db: Session, user_data: UserCreate) -> User:
@@ -89,7 +109,6 @@ def register(db: Session, user_data: UserCreate) -> User:
             detail="User could not be created because it conflicts with an existing record",
             code="user_conflict",
         ) from exc
-
 
 
 def login(db: Session, username: str, password: str) -> str | None:

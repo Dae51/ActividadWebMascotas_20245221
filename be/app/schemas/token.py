@@ -8,3 +8,8 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: int | None = None
+
+
+class WsTicket(BaseModel):
+    ticket: str
+    expires_in: int

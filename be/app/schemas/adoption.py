@@ -1,6 +1,10 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
 
 from ..models.adoption import AdoptionStatus
+from .pet import PetBrief
+from .user import UserBrief
 
 
 class AdoptionRequest(BaseModel):
@@ -17,3 +21,10 @@ class AdoptionOut(BaseModel):
     previous_owner_id: int
     status: AdoptionStatus
     message: str | None = None
+
+
+class AdoptionDetailOut(AdoptionOut):
+    requested_at: datetime
+    completed_at: datetime | None = None
+    pet: PetBrief
+    adopter: UserBrief

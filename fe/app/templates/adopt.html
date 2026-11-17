@@ -19,6 +19,7 @@
     </article>
 
     <form class="panel form-card adopt-form" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <p class="eyebrow">Solicitar adopción</p>
         <h2>Cuéntale al dueño actual por qué eres una buena opción.</h2>
         <label>

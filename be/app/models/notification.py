@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -17,10 +18,15 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
 
+if TYPE_CHECKING:
+    from .pet import Pet
+    from .user import User
+
 
 class NotificationType(str, Enum):
     ADOPTION_REQUEST = "adoption_request"
     ADOPTION_APPROVED = "adoption_approved"
+    ADOPTION_REJECTED = "adoption_rejected"
     ADOPTION_COMPLETED = "adoption_completed"
     GENERAL = "general"
 

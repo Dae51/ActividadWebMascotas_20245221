@@ -7,45 +7,138 @@
     <div>
         <p class="eyebrow">Panel del dueño</p>
         <h1>{{ session.get('username', 'Cuidador') }}, aquí están tus mascotas.</h1>
-        <p class="muted">Activa o desactiva la adopción, revisa cada perfil rápidamente y mantén tu lista organizada mientras llegan solicitudes.</p>
+        <p class="muted">Activa o desactiva la adopción, revisa cada perfil y gestiona las solicitudes que recibes.</p>
     </div>
     <a class="button-link" href="{{ url_for('add_pet') }}">Agregar una mascota</a>
 </section>
 
-<section class="card-grid">
-    {% for pet in pets %}
-        <article class="panel pet-card">
-            <div class="pet-media" {% if pet.photo_url %}style="background-image: linear-gradient(180deg, rgba(14, 17, 30, 0.1), rgba(14, 17, 30, 0.7)), url('{{ pet.photo_url }}');"{% endif %}>
-                <span class="status-badge status-{{ pet.status }}">{{ pet.status|status_es }}</span>
-                {% if pet.is_for_adoption %}
-                    <span class="catalog-badge">En catálogo</span>
-                {% endif %}
-            </div>
-            <div class="pet-body">
-                <div class="pet-title-row">
-                    <div>
-                        <h2>{{ pet.name }}</h2>
-                        <p>{{ pet.species|species_es }}{% if pet.breed %} · {{ pet.breed }}{% endif %}</p>
-                    </div>
-                    {% if pet.age_years %}
-                        <span class="pill">{{ pet.age_years }} años</span>
+<section class="section-block">
+    <div class="section-heading">
+        <h2>Mis mascotas</h2>
+        <span class="pill soft">{{ pets|length }} en total</span>
+    </div>
+    <div class="card-grid">
+        {% for pet in pets %}
+            <article class="panel pet-card">
+                <div class="pet-media" {% if pet.photo_url %}style="background-image: linear-gradient(180deg, rgba(14, 17, 30, 0.1), rgba(14, 17, 30, 0.7)), url('{{ pet.photo_url }}');"{% endif %}>
+                    <span class="status-badge status-{{ pet.status }}">{{ pet.status|status_es }}</span>
+                    {% if pet.is_for_adoption %}
+                        <span class="catalog-badge">En catálogo</span>
                     {% endif %}
                 </div>
-                <p class="muted pet-description">{{ pet.description or 'Todavía no hay notas adicionales. Agrega un breve resumen de su personalidad cuando quieras.' }}</p>
-                <form method="post" action="{{ url_for('toggle_adoption', pet_id=pet.id) }}">
-                    <input type="hidden" name="current_state" value="{{ 'true' if pet.is_for_adoption else 'false' }}">
-                    <button type="submit" class="secondary-button">
-                        {{ 'Quitar de adopción' if pet.is_for_adoption else 'Publicar para adopción' }}
-                    </button>
-                </form>
-            </div>
-        </article>
-    {% else %}
-        <article class="panel empty-state">
-            <h2>Aún no tienes mascotas</h2>
-            <p class="muted">Empieza agregando el primer perfil. Cuando ya exista, puedes decidir si debe aparecer en el catálogo de adopción.</p>
-            <a class="button-link" href="{{ url_for('add_pet') }}">Crear primer perfil</a>
-        </article>
-    {% endfor %}
+                <div class="pet-body">
+                    <div class="pet-title-row">
+                        <div>
+                            <h2>{{ pet.name }}</h2>
+                            <p>{{ pet.species|species_es }}{% if pet.breed %} · {{ pet.breed }}{% endif %}</p>
+                        </div>
+                        {% if pet.age_years %}
+                            <span class="pill">{{ pet.age_years }} años</span>
+                        {% endif %}
+                    </div>
+                    <p class="muted pet-description">{{ pet.description or 'Todavía no hay notas adicionales. Agrega un breve resumen de su personalidad cuando quieras.' }}</p>
+                    <div class="pet-meta">
+                        <form method="post" action="{{ url_for('toggle_adoption', pet_id=pet.id) }}">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="hidden" name="current_state" value="{{ 'true' if pet.is_for_adoption else 'false' }}">
+                            <button type="submit" class="secondary-button">
+                                {{ 'Quitar de adopción' if pet.is_for_adoption else 'Publicar para adopción' }}
+                            </button>
+                        </form>
+                        <form method="post" action="{{ url_for('delete_pet', pet_id=pet.id) }}" onsubmit="return confirm('¿Eliminar esta mascota de forma permanente?');">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="danger-button">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <article class="panel empty-state">
+                <h2>Aún no tienes mascotas</h2>
+                <p class="muted">Empieza agregando el primer perfil. Cuando ya exista, puedes decidir si debe aparecer en el catálogo de adopción.</p>
+                <a class="button-link" href="{{ url_for('add_pet') }}">Crear primer perfil</a>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <h2>Solicitudes recibidas</h2>
+        <span class="pill soft">{{ received|length }} en total</span>
+    </div>
+    <div class="request-list">
+        {% for item in received %}
+            <article class="panel request-card">
+                <div class="request-main">
+                    <div>
+                        <h3>{{ item.pet.name }}</h3>
+                        <p class="muted">Solicita {{ item.adopter.full_name or item.adopter.username }} · {{ item.requested_at|datetime_es }}</p>
+                    </div>
+                    <span class="status-badge status-{{ item.status }}">{{ item.status|status_es }}</span>
+                </div>
+                {% if item.message %}
+                    <p class="request-message">{{ item.message }}</p>
+                {% endif %}
+                <div class="form-actions">
+                    {% if item.status == 'pending' %}
+                        <form method="post" action="{{ url_for('manage_adoption', adoption_id=item.id, action='approve') }}">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="secondary-button">Aprobar</button>
+                        </form>
+                        <form method="post" action="{{ url_for('manage_adoption', adoption_id=item.id, action='reject') }}">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="danger-button">Rechazar</button>
+                        </form>
+                    {% elif item.status == 'approved' %}
+                        <form method="post" action="{{ url_for('manage_adoption', adoption_id=item.id, action='complete') }}" onsubmit="return confirm('Al completar, la mascota cambiará de dueño. ¿Continuar?');">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button type="submit">Completar adopción</button>
+                        </form>
+                        <form method="post" action="{{ url_for('manage_adoption', adoption_id=item.id, action='reject') }}">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="danger-button">Rechazar</button>
+                        </form>
+                    {% else %}
+                        <span class="muted">Sin acciones disponibles.</span>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <article class="panel empty-state">
+                <h2>Todavía no recibes solicitudes</h2>
+                <p class="muted">Cuando publiques una mascota en el catálogo, las solicitudes aparecerán aquí con sus acciones.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <h2>Mis solicitudes enviadas</h2>
+        <span class="pill soft">{{ requested|length }} en total</span>
+    </div>
+    <div class="request-list">
+        {% for item in requested %}
+            <article class="panel request-card">
+                <div class="request-main">
+                    <div>
+                        <h3>{{ item.pet.name }}</h3>
+                        <p class="muted">Dueño anterior #{{ item.previous_owner_id }} · {{ item.requested_at|datetime_es }}</p>
+                    </div>
+                    <span class="status-badge status-{{ item.status }}">{{ item.status|status_es }}</span>
+                </div>
+                {% if item.completed_at %}
+                    <p class="muted">Completada el {{ item.completed_at|datetime_es }}</p>
+                {% endif %}
+            </article>
+        {% else %}
+            <article class="panel empty-state">
+                <h2>Aún no has solicitado adopciones</h2>
+                <p class="muted">Explora el catálogo y envía tu primera solicitud.</p>
+                <a class="button-link" href="{{ url_for('catalog') }}">Ver catálogo</a>
+            </article>
+        {% endfor %}
+    </div>
 </section>
 {% endblock %}

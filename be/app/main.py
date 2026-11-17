@@ -1,15 +1,22 @@
-from fastapi import FastAPI, HTTPException, Request
+import logging
+
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import DataError, IntegrityError
+from sqlalchemy import text
+from sqlalchemy.exc import DataError, IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import Session
 
+from .config import settings
+from .database import get_db
 from .errors import ApiError
-from .routers import auth, pets, adoptions, ws
+from .routers import adoptions, auth, notifications, pets, ws
 
 
-app = FastAPI(title="PawsHome API")
+logger = logging.getLogger("pawshome.api")
 
+app = FastAPI(title="PawsHome API", version="1.0.0")
 
 
 def error_body(message: str, code: str, errors: list[dict] | None = None) -> dict:
@@ -45,11 +52,14 @@ async def handle_http_exception(_: Request, exc: HTTPException) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content=error_body(message, f"http_{exc.status_code}", errors),
+        headers=getattr(exc, "headers", None),
     )
 
 
 @app.exception_handler(RequestValidationError)
-async def handle_validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
+async def handle_validation_error(
+    _: Request, exc: RequestValidationError
+) -> JSONResponse:
     return JSONResponse(
         status_code=422,
         content=error_body("Validation error", "validation_error", exc.errors()),
@@ -72,8 +82,18 @@ async def handle_integrity_error(_: Request, __: IntegrityError) -> JSONResponse
     )
 
 
+@app.exception_handler(SQLAlchemyError)
+async def handle_database_error(_: Request, __: SQLAlchemyError) -> JSONResponse:
+    logger.exception("Unhandled database error")
+    return JSONResponse(
+        status_code=503,
+        content=error_body("Database is not available", "database_unavailable"),
+    )
+
+
 @app.exception_handler(Exception)
 async def handle_unexpected_error(_: Request, __: Exception) -> JSONResponse:
+    logger.exception("Unhandled application error")
     return JSONResponse(
         status_code=500,
         content=error_body("Internal server error", "internal_server_error"),
@@ -82,18 +102,20 @@ async def handle_unexpected_error(_: Request, __: Exception) -> JSONResponse:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "http://fe:5000"],
+    allow_origins=list(settings.cors_origins),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(auth.router)
 app.include_router(pets.router)
 app.include_router(adoptions.router)
+app.include_router(notifications.router)
 app.include_router(ws.router)
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+@app.get("/health", tags=["system"])
+def health(db: Session = Depends(get_db)):
+    db.execute(text("SELECT 1"))
+    return {"status": "ok", "version": app.version}

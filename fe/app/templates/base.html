@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}PawsHome{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body data-authenticated="{{ 'true' if session.get('token') else 'false' }}">
     <div class="bg-orb bg-orb-one"></div>
     <div class="bg-orb bg-orb-two"></div>
     <div class="shell">
@@ -23,6 +24,9 @@
                     <a href="{{ url_for('dashboard') }}">Panel</a>
                     <a href="{{ url_for('catalog') }}">Catálogo</a>
                     <a href="{{ url_for('add_pet') }}">Agregar mascota</a>
+                    <a href="{{ url_for('notifications') }}">
+                        Avisos <span id="notif-badge" class="nav-badge" hidden></span>
+                    </a>
                     <a class="nav-user" href="{{ url_for('logout') }}">{{ session.get('username', 'salir') }}</a>
                 {% else %}
                     <a href="{{ url_for('login') }}">Iniciar sesión</a>
@@ -45,5 +49,10 @@
             {% block content %}{% endblock %}
         </main>
     </div>
+
+    <div id="toast-root" class="toast-root" aria-live="polite"></div>
+    {% if session.get('token') %}
+        <script src="{{ url_for('static', filename='notifications.js') }}" defer></script>
+    {% endif %}
 </body>
 </html>

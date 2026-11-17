@@ -11,22 +11,23 @@
         <p class="muted">La interfaz se mantiene ligera a propósito: solo lo esencial para crear una cuenta segura y comenzar a cuidar animales dentro del sistema.</p>
     </div>
     <form class="panel form-card" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <h2>Crear cuenta</h2>
         <label>
             Nombre completo
-            <input type="text" name="full_name" placeholder="Alex Rivera">
+            <input type="text" name="full_name" placeholder="Alex Rivera" maxlength="100">
         </label>
         <label>
             Usuario
-            <input type="text" name="username" placeholder="alexr" required>
+            <input type="text" name="username" placeholder="alexr" minlength="3" maxlength="50" pattern="[A-Za-z0-9_.-]+" autocomplete="username" required>
         </label>
         <label>
             Correo electrónico
-            <input type="email" name="email" placeholder="alex@example.com" required>
+            <input type="email" name="email" placeholder="alex@example.com" maxlength="100" autocomplete="email" required>
         </label>
         <label>
             Contraseña
-            <input type="password" name="password" placeholder="Elige una contraseña segura" required>
+            <input type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="128" autocomplete="new-password" required>
         </label>
         <button type="submit">Crear cuenta</button>
         <p class="form-foot">¿Ya estás registrado? <a href="{{ url_for('login') }}">Inicia sesión</a></p>

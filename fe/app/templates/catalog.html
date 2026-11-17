@@ -23,7 +23,6 @@
                 <p class="muted pet-description">{{ pet.description or 'Esta mascota está esperando una familia con cariño y compromiso.' }}</p>
                 <div class="pet-meta">
                     {% if pet.age_years %}<span class="pill">{{ pet.age_years }} años</span>{% endif %}
-                    <span class="pill soft">dueño #{{ pet.owner_id }}</span>
                     <span class="pill soft">en adopción {{ pet.is_for_adoption|yesno_es }}</span>
                 </div>
                 <a class="button-link" href="{{ url_for('adopt', pet_id=pet.id) }}">Iniciar solicitud de adopción</a>
